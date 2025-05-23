@@ -2,6 +2,8 @@ import os
 import psycopg2
 from dotenv import load_dotenv
 
+from database.create_database import create_all_tables
+
 # получение данных для входа
 if not load_dotenv():
     raise ValueError("Не удалось загрузить .env файл")
@@ -13,7 +15,8 @@ PORT = int(os.getenv("PORT"))
 connection = psycopg2.connect(dbname='Clinics', user=USER, password=PASSWD_DB, host=HOST, port=PORT)
 connection.autocommit = True
 cursor = connection.cursor()
-cursor.execute('CREATE TABLE test_table(test date);')
+create_all_tables(cursor)
+
 cursor.close() 
 connection.close()
 
