@@ -2,7 +2,7 @@ import os
 import psycopg2
 from dotenv import load_dotenv
 
-from database.create_database import create_all_tables
+from database.create_database import create_all_tables, create_trigger, insert_test_data
 
 # получение данных для входа
 if not load_dotenv():
@@ -15,9 +15,11 @@ PORT = int(os.getenv("PORT"))
 connection = psycopg2.connect(dbname='Clinics', user=USER, password=PASSWD_DB, host=HOST, port=PORT)
 connection.autocommit = True
 cursor = connection.cursor()
+
+# создание и заполнение таблиц, создание триггера
 create_all_tables(cursor)
+create_trigger(cursor)
+insert_test_data(cursor)
 
 cursor.close() 
 connection.close()
-
-
