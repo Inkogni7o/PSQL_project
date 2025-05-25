@@ -1,4 +1,4 @@
-def create_all_tables(cursor):
+def create_all_tables(cursor) -> None:
     """Create all tabels in Clinics database"""
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS Clinics (
@@ -70,7 +70,7 @@ def create_all_tables(cursor):
     """)
 
 
-def create_trigger(cursor):
+def create_trigger(cursor) -> None:
     cursor.execute("""
     CREATE OR REPLACE FUNCTION update_visit_count() RETURNS TRIGGER 
     LANGUAGE PLPGSQL
@@ -95,7 +95,7 @@ def create_trigger(cursor):
     """) 
 
 
-def insert_test_data(cursor):
+def insert_test_data(cursor) -> None:
     cursor.execute("""
     INSERT INTO Clinics (name, address, phone, email, opening_date, working_hours) VALUES
     ('Зеленоградский ВетЦентр', 'г. Зеленоград, ул. Центральная, 15', '+74951234567', 'vetcenter@mail.ru', '2010-05-15', '08:00-20:00'),
@@ -168,4 +168,19 @@ def insert_test_data(cursor):
     (8, 9, 'Лейкоцел 2', '2021-08-05', '2022-08-05', 'BATCH234', 8),
     (9, 10, 'Дефенсор 3', '2021-09-13', '2022-09-13', 'BATCH567', 9),
     (10, 2, 'Мультифел-4', '2021-10-20', '2022-10-20', 'BATCH890', 1);
+    """)
+
+def create_indexes(cursor) -> None:
+    cursor.execute("""
+    CREATE INDEX IF NOT EXISTS idx_pets_owner_id ON Pets(owner_id);
+
+    CREATE INDEX IF NOT EXISTS idx_visits_pet_id ON Visits(pet_id);
+    CREATE INDEX IF NOT EXISTS idx_visits_vet_id ON Visits(vet_id);
+    CREATE INDEX IF NOT EXISTS idx_visits_date ON Visits(visit_date);
+    CREATE INDEX IF NOT EXISTS idx_visits_clinic_id ON Visits(clinic_id);
+
+    CREATE INDEX IF NOT EXISTS idx_veterinarians_clinic_id ON Veterinarians(clinic_id);
+
+    CREATE INDEX IF NOT EXISTS idx_vaccinations_pet_id ON Vaccinations(pet_id);
+    CREATE INDEX IF NOT EXISTS idx_vaccinations_date ON Vaccinations(vaccination_date);
     """)
