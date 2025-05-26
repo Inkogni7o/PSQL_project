@@ -88,10 +88,29 @@ def create_trigger(cursor) -> None:
     END;
     $$;
 
+    -- Триггер для изменения следующей вакцинации при обновлении (используется с последней процедурой)
     CREATE OR REPLACE TRIGGER trg_update_visit_count
     AFTER INSERT ON Visits
     FOR EACH ROW
     EXECUTE FUNCTION update_visit_count();
+                   
+    CREATE OR REPLACE FUNCTION update_next_vaccination_date()
+    RETURNS TRIGGER
+    LANGUAGE plpgsql
+    AS $$
+    BEGIN
+        -- Если изменилась дата вакцинации, обновляем дату следующей
+        IF NEW.vaccination_date <> OLD.vaccination_date THEN
+            NEW.next_vaccination_date := NEW.vaccination_date + INTERVAL '1 year';
+        END IF;
+        RETURN NEW;
+    END;
+    $$;
+
+    CREATE TRIGGER trg_update_vaccination_date
+    BEFORE UPDATE ON Vaccinations
+    FOR EACH ROW
+    EXECUTE FUNCTION update_next_vaccination_date();
     """) 
 
 
@@ -183,4 +202,194 @@ def create_indexes(cursor) -> None:
 
     CREATE INDEX IF NOT EXISTS idx_vaccinations_pet_id ON Vaccinations(pet_id);
     CREATE INDEX IF NOT EXISTS idx_vaccinations_date ON Vaccinations(vaccination_date);
+    """)
+
+
+def create_procedurs(cursor) -> None:
+    cursor.execute("""
+    -- Процедура для регистрации нового животного
+    CREATE OR REPLACE PROCEDURE register_new_pet(
+        owner_first_name VARCHAR(50),
+        owner_last_name VARCHAR(50),
+        owner_phone VARCHAR(20),
+        pet_name VARCHAR(50),
+        pet_species VARCHAR(50),
+        pet_breed VARCHAR(50),
+        pet_birth_date DATE,
+        pet_gender CHAR(1),
+        pet_chip_number VARCHAR(20) DEFAULT NULL
+    )
+                   
+    LANGUAGE plpgsql
+    AS $$
+    DECLARE
+        owner_id_var INTEGER;
+    BEGIN
+        SELECT owner_id INTO owner_id_var 
+        FROM Owners 
+        WHERE phone = owner_phone;
+
+        IF NOT FOUND THEN
+            INSERT INTO Owners (first_name, last_name, phone)
+            VALUES (owner_first_name, owner_last_name, owner_phone)
+            RETURNING owner_id INTO owner_id_var;
+        END IF;
+
+        INSERT INTO Pets (owner_id, name, species, breed, birth_date, gender, chip_number)
+        VALUES (owner_id_var, pet_name, pet_species, pet_breed, pet_birth_date, pet_gender, pet_chip_number);
+        COMMIT;
+                   
+        RAISE NOTICE 'Питомец % успешно зарегистрирован для владельца % %', pet_name, owner_first_name, owner_last_name;
+    END;
+    $$;
+
+                   
+    -- Процедура записи на приём               
+    CREATE OR REPLACE PROCEDURE schedule_visit(
+        pet_id_param INTEGER,
+        vet_id_param INTEGER,
+        clinic_id_param INTEGER,
+        visit_datetime TIMESTAMP,
+        reason TEXT DEFAULT NULL
+    )
+    LANGUAGE plpgsql
+    AS $$
+    DECLARE
+        vet_available BOOLEAN;
+    BEGIN
+        SELECT NOT EXISTS (
+            SELECT 1 FROM Visits 
+            WHERE vet_id = vet_id_param 
+              AND visit_date BETWEEN (visit_datetime - INTERVAL '30 minutes') 
+                                AND (visit_datetime + INTERVAL '30 minutes')
+        ) INTO vet_available;
+
+        IF NOT vet_available THEN
+            RAISE EXCEPTION 'Ветеринар занят в указанное время';
+        END IF;
+
+        INSERT INTO Visits (pet_id, vet_id, clinic_id, visit_date, status, diagnosis)
+        VALUES (pet_id_param, vet_id_param, clinic_id_param, visit_datetime, 'scheduled', reason);
+        COMMIT;
+                   
+        RAISE NOTICE 'Визит успешно запланирован на %', visit_datetime;
+    END;
+    $$;
+                   
+    -- Процедура рассчета дохода клиник
+    CREATE OR REPLACE PROCEDURE calculate_clinic_revenue(
+        clinic_id_param INTEGER,
+        start_date DATE,
+        end_date DATE,
+        OUT total_revenue DECIMAL(10,2),
+        OUT visit_count INTEGER
+    )
+    LANGUAGE plpgsql
+    AS $$
+    BEGIN
+        SELECT SUM(cost), COUNT(*) INTO total_revenue, visit_count
+        FROM Visits
+        WHERE clinic_id = clinic_id_param
+          AND visit_date BETWEEN start_date AND end_date
+          AND status = 'completed';
+
+        IF total_revenue IS NULL THEN
+            total_revenue := 0;
+            visit_count := 0;
+        END IF;
+
+        RAISE NOTICE 'Клиника ID %: доход за период с % по % составляет % руб. (% визитов)',
+            clinic_id_param, start_date, end_date, total_revenue, visit_count;
+    END;
+    $$;
+                   
+    -- Процедура генерации предупреждения о скорых прививках
+    CREATE OR REPLACE PROCEDURE generate_vaccination_reminders(days_ahead INTEGER)
+    LANGUAGE plpgsql
+    AS $$
+    DECLARE
+        reminder RECORD;
+    BEGIN
+        RAISE NOTICE 'Напоминания о вакцинациях в ближайшие % дней:', days_ahead;
+
+        FOR reminder IN
+            SELECT p.name AS pet_name, o.first_name, o.last_name, o.phone, o.email,
+                   v.vaccine_name, v.next_vaccination_date
+            FROM Vaccinations v
+            JOIN Pets p ON v.pet_id = p.pet_id
+            JOIN Owners o ON p.owner_id = o.owner_id
+            WHERE v.next_vaccination_date BETWEEN CURRENT_DATE AND (CURRENT_DATE + days_ahead * INTERVAL '1 day')
+            ORDER BY v.next_vaccination_date
+        LOOP
+            RAISE NOTICE 'Питомец: %, Владелец: % % (тел: %, email: %), Вакцина: %, Срок: %',
+                reminder.pet_name, reminder.first_name, reminder.last_name, 
+                reminder.phone, reminder.email, reminder.vaccine_name, 
+                reminder.next_vaccination_date;
+        END LOOP;
+    END;
+    $$;
+                   
+    -- Процедура передачи животного другому владельцу
+    CREATE OR REPLACE PROCEDURE transfer_pet_to_another_owner(
+    pet_id_param INTEGER,
+    new_owner_first_name VARCHAR(50),
+    new_owner_last_name VARCHAR(50),
+    new_owner_phone VARCHAR(20)
+    )
+    LANGUAGE plpgsql
+    AS $$
+    DECLARE
+        new_owner_id_var INTEGER;
+        old_owner_name TEXT;
+        pet_name_var TEXT;
+    BEGIN
+        SELECT owner_id INTO new_owner_id_var 
+        FROM Owners 
+        WHERE phone = new_owner_phone;
+
+        IF NOT FOUND THEN
+            INSERT INTO Owners (first_name, last_name, phone)
+            VALUES (new_owner_first_name, new_owner_last_name, new_owner_phone)
+            RETURNING owner_id INTO new_owner_id_var;
+        END IF;
+
+        SELECT CONCAT(o.first_name, ' ', o.last_name), p.name 
+        INTO old_owner_name, pet_name_var
+        FROM Pets p
+        JOIN Owners o ON p.owner_id = o.owner_id
+        WHERE p.pet_id = pet_id_param;
+
+        UPDATE Pets
+        SET owner_id = new_owner_id_var
+        WHERE pet_id = pet_id_param;
+
+        COMMIT;
+        RAISE NOTICE 'Питомец % передан от % к новому владельцу % %', 
+            pet_name_var, old_owner_name, new_owner_first_name, new_owner_last_name;
+    END;
+    $$;
+                   
+    -- Процедура добавления новой вакцинации
+    CREATE OR REPLACE PROCEDURE add_vaccination(
+    pet_id_param INTEGER,
+    vet_id_param INTEGER,
+    vaccine_name_param VARCHAR(100),
+    clinic_id_param INTEGER,
+    batch_number_param VARCHAR(50) DEFAULT NULL
+    )
+    LANGUAGE plpgsql
+    AS $$
+    DECLARE
+        next_vacc_date DATE;
+    BEGIN
+        next_vacc_date := CURRENT_DATE + INTERVAL '1 year';
+
+        INSERT INTO Vaccinations (pet_id, vet_id, vaccine_name, vaccination_date, 
+                                 next_vaccination_date, batch_number, clinic_id)
+        VALUES (pet_id_param, vet_id_param, vaccine_name_param, CURRENT_DATE, 
+                next_vacc_date, batch_number_param, clinic_id_param);
+        COMMIT;
+        RAISE NOTICE 'Вакцинация % успешно добавлена для питомца ID %', vaccine_name_param, pet_id_param;
+    END;
+    $$;
     """)

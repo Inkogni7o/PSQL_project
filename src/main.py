@@ -16,11 +16,12 @@ connection = psycopg2.connect(dbname='Clinics', user=USER, password=PASSWD_DB, h
 connection.autocommit = True
 cursor = connection.cursor()
 
-# создание и заполнение таблиц, создание триггера, индексов
+# создание и заполнение таблиц, создание триггера, индексов, процедуры
 create_all_tables(cursor)
 create_trigger(cursor)
 insert_test_data(cursor)
 create_indexes(cursor)
+create_procedurs(cursor)
 
 cursor.close() 
 connection.close()
