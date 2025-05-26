@@ -2,7 +2,7 @@ import os
 import psycopg2
 from dotenv import load_dotenv
 
-from database.create_database import create_all_tables, create_trigger, insert_test_data, create_indexes
+from database.create_database import create_all_tables, create_trigger, insert_test_data, create_indexes, create_procedurs
 
 # получение данных для входа
 if not load_dotenv():
