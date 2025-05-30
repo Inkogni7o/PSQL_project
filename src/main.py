@@ -1,7 +1,7 @@
 import os
 import psycopg2
 from dotenv import load_dotenv
-from flask import Flask, request, render_template, redirect, url_for
+from flask import Flask, request, render_template, redirect, url_for, flash
 
 from database.create_database import create_all_tables, create_trigger, insert_test_data, create_indexes, create_procedurs
 
@@ -42,10 +42,12 @@ def display_tables():
     data = cursor.fetchall()
     return render_template("tables2.html", data=data)
 
-@app.route('/display_table', methods=['POST'])
+@app.route('/display_table', methods=['GET', 'POST'])
 def display_table():
-    global table_name
-    table_name = request.form.get('table_name')
+    if request.method == 'POST':
+        table_name = request.form.get('table_name')
+    else:
+        table_name = request.args.get('table_name')
     if table_name not in tables:
         return redirect(url_for('index'))
     cursor.execute(f"SELECT * FROM {table_name}")
@@ -61,9 +63,8 @@ def delete():
     id = request.form['id']
     table_name = request.form['table_name']
     columns = request.form['columns']
-    # cursor.execute('DELETE FROM %s WHERE id=%s', (table_name, id,))
-    cursor.execute('DELETE FROM' +  table_name + 'WHERE ' + columns + '=' + id)
-    return redirect(url_for('/display_table'))
+    cursor.execute('DELETE FROM ' +  table_name + ' WHERE ' + columns + '=' + id)   
+    return redirect(url_for('display_table', table_name=table_name))
 
 if __name__ == '__main__':
-    app.run(debug=True) 
+    app.run(debug=True)
