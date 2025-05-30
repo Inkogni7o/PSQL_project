@@ -6,7 +6,7 @@ def create_all_tables(cursor) -> None:
         name VARCHAR(100) NOT NULL,
         address VARCHAR(200) NOT NULL UNIQUE,
         phone VARCHAR(20) NOT NULL UNIQUE,
-        email VARCHAR(100),
+        website VARCHAR(100),
         opening_date DATE NOT NULL CHECK (opening_date <= CURRENT_DATE),
         working_hours VARCHAR(50) NOT NULL
     );
@@ -17,8 +17,6 @@ def create_all_tables(cursor) -> None:
         first_name VARCHAR(50) NOT NULL,
         last_name VARCHAR(50) NOT NULL,
         specialization VARCHAR(100) NOT NULL,
-        license_number VARCHAR(20) NOT NULL UNIQUE,
-        hire_date DATE NOT NULL CHECK (hire_date <= CURRENT_DATE),
         salary DECIMAL(10,2) CHECK (salary > 0)
     );
 
@@ -40,7 +38,6 @@ def create_all_tables(cursor) -> None:
         breed VARCHAR(50),
         birth_date DATE CHECK (birth_date <= CURRENT_DATE),
         gender CHAR(1) CHECK (gender IN ('M', 'F')),
-        chip_number VARCHAR(20) UNIQUE,
         registration_date DATE DEFAULT CURRENT_DATE
     );
 
@@ -64,7 +61,6 @@ def create_all_tables(cursor) -> None:
         vaccine_name VARCHAR(100) NOT NULL,
         vaccination_date DATE NOT NULL DEFAULT CURRENT_DATE,
         next_vaccination_date DATE,
-        batch_number VARCHAR(50),
         clinic_id INTEGER REFERENCES Clinics(clinic_id) ON DELETE SET NULL
     );
     """)
@@ -123,8 +119,8 @@ def insert_test_data(cursor) -> None:
     ('Поливет', 'г. Зеленоград, Панфиловский просп., 10', '+7(499)226-14-06', 'www.poli-vet.ru', '2018-01-30', '00:00-23:59'),
     ('Рядом', 'г. Зеленоград, Георгиевский просп., к2020', '+7(499)322-25-40', 'ryadomvet.ru', '2016-11-05', '00:00-23:59'),
     ('Динго', 'г. Зеленоград, к1455', '+7(495)504-55-35', 'dingovet.ru', '2014-09-18', '09:00-21:00'),
-    ('Бис', 'г. Зеленоград, Фирсановское ш., вл. 1', '+7(977)180-41-47', '-', '2017-04-25', '09:00-18:00'),
-    ('Астерион', 'г. Зеленоград, Георгиевский просп., 33, корп. 6', '+7(999)662-77-37', '-', '2013-02-14', '09:00-21:00'),
+    ('Бис', 'г. Зеленоград, Фирсановское ш., вл. 1', '+7(977)180-41-47', NULL, '2017-04-25', '09:00-18:00'),
+    ('Астерион', 'г. Зеленоград, Георгиевский просп., 33, корп. 6', '+7(999)662-77-37', NULL, '2013-02-14', '09:00-21:00'),
     ('Раденис', 'г. Зеленоград, ул. Андреевка, 31Б', '+7(495)542-60-11', 'vetradenis.ru', '2019-06-08', '09:00-21:00'),
     ('Кит', '4-й Мичуринский тупик, 5, микрорайон Сходня, Химки', '+7(495)120-40-90', 'vetkit.ru', '2011-12-03', '09:00-21:00');
 
