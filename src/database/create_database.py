@@ -103,7 +103,7 @@ def create_trigger(cursor) -> None:
     END;
     $$;
 
-    CREATE TRIGGER trg_update_vaccination_date
+    CREATE OR REPLACE TRIGGER trg_update_vaccination_date
     BEFORE UPDATE ON Vaccinations
     FOR EACH ROW
     EXECUTE FUNCTION update_next_vaccination_date();
@@ -160,7 +160,7 @@ def insert_test_data(cursor) -> None:
     ('Рыжик', 9, 'Кошка', 'Мейн-кун', '2017-06-08', 'M', '2020-06-13'),
     ('Лайка', 10, 'Собака', 'Хаски', '2019-12-03', 'F', '2019-12-08');
                    
-    INSERT INTO Visits (pet_id, vet_id, clinic_id, visit_date, diagnosis, treatment, cost, status) VALUES
+    INSERT INTO Visits (visit_date, pet_id, vet_id, clinic_id, diagnosis, treatment, cost, status) VALUES
     (1, '2025-01-10 10:00:00', 1, 1,'Гастрит', 'Диета, лекарства', 2500.00, 'completed'),
     (2, '2025-02-15 11:30:00', 3, 2, 'Аллергия', 'Антигистаминные препараты', 1800.00, 'completed'),
     (3, '2025-03-20 09:15:00', 4, 3, 'Лишай', 'Противогрибковая мазь', 2200.00, 'completed'),
@@ -172,7 +172,7 @@ def insert_test_data(cursor) -> None:
     (9, '2025-09-08 11:30:00', 10, 9, 'Диабет', 'Инсулинотерапия', 4000.00, 'completed'),
     (10, '2025-10-15 13:45:00', 2, 1, 'Чумка', 'Интенсивная терапия', 6000.00, 'completed');
                    
-    INSERT INTO Vaccinations (pet_id, vet_id, vaccine_name, vaccination_date, next_vaccination_date, clinic_id) VALUES
+    INSERT INTO Vaccinations (vaccine_name, pet_id, vet_id, vaccination_date, next_vaccination_date, clinic_id) VALUES
     (1, 'Nobivac Tricat', 1, '2024-01-15', '2025-01-15', 1),
     (3, 'Эурикан DHPPI2-LR', 2, '2024-02-20', '2025-02-20', 2),
     (4, 'Purevax RCPCh', 3, '2024-03-25', '2025-03-25', 3),

@@ -25,8 +25,8 @@ tables = [i[0] for i in cursor.fetchall()]
 
 # создание и заполнение таблиц, создание триггера, индексов, процедуры
 create_all_tables(cursor)
-# create_trigger(cursor)
-# insert_test_data(cursor)
+create_trigger(cursor)
+insert_test_data(cursor)
 create_indexes(cursor)
 create_procedurs(cursor)
 
