@@ -1,7 +1,7 @@
 import os
 import psycopg2
 from dotenv import load_dotenv
-from flask import Flask, request, render_template, redirect, url_for, flash
+from flask import Flask, request, render_template, redirect, url_for
 
 from database.create_database import create_all_tables, create_trigger, insert_test_data, create_indexes, create_procedurs
 
