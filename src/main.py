@@ -44,13 +44,12 @@ def display_table():
         table_name = request.args.get('table_name')
     if table_name not in tables:
         return redirect(url_for('index'))
-    cursor.execute(f"SELECT * FROM {table_name}")
+    cursor.execute(f"SELECT * FROM {table_name} ORDER BY 1")
     data = cursor.fetchall()
 
     cursor.execute(f"SELECT column_name FROM information_schema.columns WHERE table_name = '{table_name}'")
     columns = [column[0] for column in cursor.fetchall()]
-    print(columns)
-    return render_template("tables2.html", table_name=table_name, data=data, columns=columns)
+    return render_template("tables3.html", table_name=table_name, data=data, columns=columns)
 
 @app.route('/delete', methods=['POST'])
 def delete():
@@ -59,6 +58,21 @@ def delete():
     columns = request.form['columns']
     cursor.execute('DELETE FROM ' +  table_name + ' WHERE ' + columns + '=' + id)   
     return redirect(url_for('display_table', table_name=table_name))
+
+@app.route('/update', methods=['POST'])
+def update():
+    row_id = request.form['id']
+    table_name = request.form['table_name']
+    columns = request.form['columns']
+
+    update_data = {key: value for key, value in request.form.items() if key not in ['id', 'table_name', 'columns']}
+
+    set_clause = ", ".join([f"{key} = %s" for key in update_data.keys()])
+    values = list(update_data.values())
+    values.append(row_id)
+    cursor.execute(f"UPDATE {table_name} SET {set_clause} WHERE {columns} = %s", values)
+    return redirect(url_for('display_table', table_name=table_name))
+
 
 if __name__ == '__main__':
     app.run(debug=True)
