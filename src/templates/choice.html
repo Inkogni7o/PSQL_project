@@ -3,17 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <title>Выбор таблицы</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/choise.css') }}">
 </head>
 <body>
-    <h1>Выберите таблицу для отображения</h1>
-    <form action="/display_table" method="post">
-        <select name="table_name" required>
-            <option value="" disabled selected>Выберите таблицу</option>
-            {% for table in tables %}
-            <option value="{{ table }}">{{ table }}</option>
-            {% endfor %}
-        </select>
-        <button type="submit">Показать таблицу</button>
-    </form>
+    <div class="container">
+        <h1>Выберите таблицу для отображения</h1>
+        <form action="/display_table" method="post">
+            <select name="table_name" required>
+                <option value="" disabled selected>Выберите таблицу</option>
+                {% for table in tables %}
+                <option value="{{ table }}">{{ table }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Показать таблицу</button>
+        </form>
+    </div>
 </body>
 </html>
