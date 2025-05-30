@@ -41,12 +41,12 @@ JOIN Clinics c ON vi.clinic_id = c.clinic_id
 JOIN Veterinarians vet ON vi.vet_id = vet.vet_id
 ORDER BY vi.visit_date;
 
--- 7) Вывести кошек с вакциной, датирующаяся второй половиной 2021 года
+-- 7) Вывести кошек с вакциной, датирующаяся второй половиной 2025 года
 SELECT p.name, p.breed, va.vaccine_name, va.vaccination_date
 FROM Pets p
 JOIN Vaccinations va ON p.pet_id = va.pet_id
 WHERE p.species = 'Кошка' 
-  AND va.vaccination_date >= '2021-06-01'
+  AND va.vaccination_date >= '2025-06-01'
 ORDER BY va.vaccination_date;
 
 -- 8) Вывести посещения дороже 3000 р

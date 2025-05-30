@@ -36,12 +36,6 @@ app = Flask(__name__)
 def index(): 
     return render_template("choice.html", tables=tables)
 
-@app.route('/tables')
-def display_tables():
-    cursor.execute("SELECT * FROM Clinics")
-    data = cursor.fetchall()
-    return render_template("tables2.html", data=data)
-
 @app.route('/display_table', methods=['GET', 'POST'])
 def display_table():
     if request.method == 'POST':
