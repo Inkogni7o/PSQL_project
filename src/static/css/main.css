@@ -79,3 +79,8 @@ button[type="submit"], button[type="button"] {
     cursor: pointer;
     margin: 5px;
 }
+
+.add-record-button {
+    margin-bottom: 20px;
+    text-align: right;
+}

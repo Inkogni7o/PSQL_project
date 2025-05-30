@@ -12,6 +12,11 @@
             <button type="button">Вернуться к выбору таблицы</button>
         </a>
     </div>
+    <div class="add-record-button">
+        <a href="{{ url_for('add_record', table_name=table_name) }}">
+            <button type="button">Добавить запись</button>
+        </a>
+    </div>
     <table>
         <thead>
             <tr>

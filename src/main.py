@@ -73,6 +73,26 @@ def update():
     cursor.execute(f"UPDATE {table_name} SET {set_clause} WHERE {columns} = %s", values)
     return redirect(url_for('display_table', table_name=table_name))
 
+@app.route('/add_record/<table_name>', methods=['GET', 'POST'])
+def add_record(table_name):
+
+    if request.method == 'POST':
+        # Получаем данные из формы
+        data = {key: value for key, value in request.form.items() if key != 'table_name'}
+
+        # Формируем и выполняем SQL-запрос для добавления новой записи
+        columns = ', '.join(data.keys())
+        placeholders = ', '.join(['%s'] * len(data))
+        query = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
+
+        cursor.execute(query, list(data.values()))
+
+    # Получаем имена столбцов для таблицы
+    cursor.execute(f"SELECT column_name FROM information_schema.columns WHERE table_name = '{table_name}'")
+    columns = [column[0] for column in cursor.fetchall()]
+
+    return render_template('add_record.html', table_name=table_name, columns=columns)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
