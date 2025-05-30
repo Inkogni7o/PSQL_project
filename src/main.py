@@ -24,14 +24,13 @@ create_all_tables(cursor)
 create_indexes(cursor)
 create_procedurs(cursor)
 
-cursor.close() 
-connection.close()
-
 app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return render_template("main.html")
+    cursor.execute("SELECT * FROM Clinics")
+    data = cursor.fetchall()
+    return render_template("main.html", data=data)
 
 if __name__ == '__main__':
     app.run(debug=True)

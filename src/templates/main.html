@@ -6,6 +6,25 @@
     <title>Document</title>
 </head>
 <body>
-    test-html-text
+    <tbody>
+        {% for row in data %}
+        <tr>
+          <td>{{ row[1] }}</td>
+          <td>
+            <form action="/update" method="post">
+              <input type="hidden" name="id" value="{{ row[0] }}">
+              {% for cell in row[2:] %}
+              <input type="text" name="name" value="{{ cell }}">
+              {% endfor %}
+              <br><input type="submit" value="Update">
+            </form>
+            <form action="/delete" method="post">
+              <input type="hidden" name="id" value="{{ row[0] }}">
+              <input type="submit" value="Delete">
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+    </tbody>
 </body>
 </html>
