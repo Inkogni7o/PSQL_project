@@ -44,12 +44,26 @@ def display_tables():
 
 @app.route('/display_table', methods=['POST'])
 def display_table():
+    global table_name
     table_name = request.form.get('table_name')
     if table_name not in tables:
         return redirect(url_for('index'))
     cursor.execute(f"SELECT * FROM {table_name}")
     data = cursor.fetchall()
-    return render_template("tables.html", table_name=table_name, data=data)
+
+    cursor.execute(f"SELECT column_name FROM information_schema.columns WHERE table_name = '{table_name}'")
+    columns = [column[0] for column in cursor.fetchall()]
+    print(columns)
+    return render_template("tables2.html", table_name=table_name, data=data, columns=columns)
+
+@app.route('/delete', methods=['POST'])
+def delete():
+    id = request.form['id']
+    table_name = request.form['table_name']
+    columns = request.form['columns']
+    # cursor.execute('DELETE FROM %s WHERE id=%s', (table_name, id,))
+    cursor.execute('DELETE FROM' +  table_name + 'WHERE ' + columns + '=' + id)
+    return redirect(url_for('/display_table'))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True) 
