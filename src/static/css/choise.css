@@ -1,18 +1,17 @@
-/* main.css */
 body {
     font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #d2c8e0, #64449e); /* Градиентный фон */
+    background: linear-gradient(135deg, #d2c8e0, #64449e); 
     height: 100vh;
     margin: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    color: #4a148c; /* Темный фиолетовый текст */
+    color: #4a148c; 
 }
 
 .container {
     text-align: center;
-    background-color: rgba(255, 255, 255, 0.8); /* Полупрозрачный белый фон */
+    background-color: rgba(255, 255, 255, 0.8); 
     padding: 30px;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -22,7 +21,7 @@ body {
 }
 
 h1 {
-    color: #7e57c2; /* Средний фиолетовый для заголовков */
+    color: #7e57c2; 
     margin-bottom: 20px;
 }
 
@@ -36,14 +35,14 @@ select {
     padding: 10px;
     font-size: 16px;
     border-radius: 5px;
-    border: 1px solid #7e57c2; /* Фиолетовая граница */
+    border: 1px solid #7e57c2;
     background-color: white;
     width: 200px;
     margin-bottom: 10px;
 }
 
 button {
-    background-color: #7e57c2; /* Фиолетовый фон для кнопки */
+    background-color: #7e57c2; 
     color: white;
     border: none;
     padding: 10px 20px;
@@ -53,5 +52,5 @@ button {
 }
 
 button:hover {
-    background-color: #5e35b1; /* Темнее фиолетовый при наведении */
+    background-color: #5e35b1;
 }
