@@ -1,6 +1,7 @@
 import os
 import psycopg2
 from dotenv import load_dotenv
+from flask import Flask, request, render_template, redirect, url_for
 
 from database.create_database import create_all_tables, create_trigger, insert_test_data, create_indexes, create_procedurs
 
@@ -18,10 +19,19 @@ cursor = connection.cursor()
 
 # создание и заполнение таблиц, создание триггера, индексов, процедуры
 create_all_tables(cursor)
-create_trigger(cursor)
-insert_test_data(cursor)
+# create_trigger(cursor)
+# insert_test_data(cursor)
 create_indexes(cursor)
 create_procedurs(cursor)
 
 cursor.close() 
 connection.close()
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return render_template("main.html")
+
+if __name__ == '__main__':
+    app.run(debug=True)
